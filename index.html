@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Me-API Playground</title>
+    <meta charset="UTF-8">
+    <style>
+      body { font-family: Arial, sans-serif; margin: 24px; }
+      h2 { margin-top: 32px; }
+      ul, li { margin: 0; padding: 0; }
+      .project, .skill { margin-bottom: 16px; }
+      .label { font-weight: bold; }
+      .search-section { margin-top: 24px; }
+    </style>
+</head>
+<body>
+    <h1>Candidate API Playground</h1>
+    <section>
+      <h2>Profile</h2>
+      <div id="profile"></div>
+    </section>
+
+    <section>
+      <h2>Skills</h2>
+      <ul id="skills"></ul>
+    </section>
+
+    <section>
+      <h2>Projects</h2>
+      <ul id="projects"></ul>
+    </section>
+
+    <section class="search-section">
+      <h2>Search Projects</h2>
+      <input id="searchInput" type="text" placeholder="Search projects...">
+      <button onclick="searchProjects()">Search</button>
+      <ul id="searchResults"></ul>
+    </section>
+
+    <section class="search-section">
+      <h2>Find Projects by Skill</h2>
+      <input id="skillSearchInput" type="text" placeholder="Skill name (e.g. Python)">
+      <button onclick="searchBySkill()">Search by Skill</button>
+      <ul id="skillProjects"></ul>
+    </section>
+
+<script>
+// Base API URL
+const API = "http://localhost:5000";
+
+// Fetch and display profile
+fetch(`${API}/profile`)
+  .then(response => response.json())
+  .then(profile => {
+    document.getElementById("profile").innerHTML = `
+      <div class="label">Name:</div> ${profile.name}<br>
+      <div class="label">Email:</div> ${profile.email}<br>
+      <div class="label">Education:</div> ${profile.education}
+    `;
+  });
+
+// Fetch and display skills
+fetch(`${API}/skills`)
+  .then(response => response.json())
+  .then(skills => {
+    document.getElementById("skills").innerHTML =
+      skills.map(skill => `<li class="skill">${skill.name}</li>`).join("");
+  });
+
+// Fetch and display projects
+fetch(`${API}/projects`)
+  .then(response => response.json())
+  .then(projects => {
+    document.getElementById("projects").innerHTML =
+      projects.map(project =>
+        `<li class="project">
+            <span class="label">Title:</span> ${project.title}<br>
+            <span class="label">Description:</span> ${project.description}<br>
+            <span class="label">Skill:</span> ${project.skill}<br>
+            <span class="label">Link:</span> <a href="${project.link}" target="_blank">${project.link}</a>
+        </li>`
+      ).join("");
+  });
+
+// Search by free-text query
+function searchProjects() {
+  const query = document.getElementById("searchInput").value;
+  fetch(`${API}/search?q=${encodeURIComponent(query)}`)
+    .then(response => response.json())
+    .then(projects => {
+      document.getElementById("searchResults").innerHTML =
+        projects.length === 0
+          ? "<li>No projects found.</li>"
+          : projects.map(project =>
+              `<li>
+                <span class="label">Title:</span> ${project.title}<br>
+                <span class="label">Description:</span> ${project.description}<br>
+                <span class="label">Skill:</span> ${project.skill}
+              </li>`
+            ).join("");
+    });
+}
+
+// Search projects by skill name
+function searchBySkill() {
+  const skill = document.getElementById("skillSearchInput").value;
+  fetch(`${API}/projects/skill/${encodeURIComponent(skill)}`)
+    .then(response => response.json())
+    .then(projects => {
+      document.getElementById("skillProjects").innerHTML =
+        projects.length === 0
+          ? "<li>No projects found for this skill.</li>"
+          : projects.map(project =>
+              `<li>
+                 <span class="label">Title:</span> ${project.title}<br>
+                 <span class="label">Description:</span> ${project.description}<br>
+                 <span class="label">Skill:</span> ${project.skill}
+              </li>`
+            ).join("");
+    });
+}
+</script>
+</body>
+</html>
